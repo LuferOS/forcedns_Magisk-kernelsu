@@ -35,7 +35,7 @@ Este módulo utiliza reglas `iptables` (y `ip6tables` para IPv6) para intercepta
 
 ## Instalación
 
-1.  Descarga el archivo ZIP del módulo desde la sección [Releases](https://github.com/TU_USUARIO/TU_REPOSITORIO/releases) (¡Reemplaza con tu enlace!).
+1.  Descarga el archivo ZIP del módulo desde la sección [Releases]([forcedns_cf_v1.1.zip](https://github.com/user-attachments/files/19783545/forcedns_cf_v1.1.zip)).
 2.  Abre **Magisk Manager** o **KernelSU Manager**.
 3.  Ve a la sección `Módulos`.
 4.  Pulsa `Instalar desde almacenamiento`.
