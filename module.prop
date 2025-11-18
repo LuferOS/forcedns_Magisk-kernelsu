@@ -1,6 +1,7 @@
-id=forcedns_cf
-name=Forzar DNS Cloudflare (1.1.1.1)
-version=v1.1
-versionCode=2
+id=Forcedns
+name=Forzar DNS Cloudflare (Failover)
+version=v2.1
+versionCode=3
 author=LuferOS
-description=Fuerza todo el tráfico DNS estándar (puerto 53) a usar 1.1.1.1 mediante iptables. Sobrescribe DNS de red. Compatible con Magisk/KernelSU.
+description=Fuerza el uso de DNS Cloudflare (1.1.1.1) con failover a Google (8.8.8.8). Incluye comprobación periódica y reversión a Cloudflare.
+updateJson=https://raw.githubusercontent.com/LuferOS/Forcedns_Magisk-kernelsu/main/update.json

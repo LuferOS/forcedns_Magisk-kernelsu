@@ -1,30 +1,48 @@
 #!/sbin/sh
-# Este script se ejecuta durante la instalación del módulo en Magisk Manager / KernelSU Manager.
-# Utiliza funciones proporcionadas por el entorno de instalación para configurar el módulo.
+
+# Función para mostrar una animación de progreso
+show_animation() {
+  local message="$1"
+  local pid=$!
+  local delay=0.15
+  local count=0
+  local spinner="◐◓◑◒" # Usamos un string en lugar de un array
+
+  while [ "$(ps -p $pid -o s=)" ]; do
+    count=$(( (count + 1) % 4 ))
+    # Extraemos el carácter del string usando 'cut'
+    char=$(echo "$spinner" | cut -c $((count + 1)))
+    ui_print -n "\r$message $char"
+    sleep $delay
+  done
+  ui_print "\r$message ✓ "
+  ui_print "" # Nueva línea para limpiar
+}
 
 # --- Lógica de Instalación ---
+ui_print "**********************************************"
+ui_print "*    Instalando Módulo Forzar DNS           *"
+ui_print "*    con Failover y Monitoreo               *"
+ui_print "**********************************************"
+ui_print ""
 
-# 1.Mostrar mensaje
-ui_print "*****************************************"
-ui_print "* Instalando Módulo Forzar DNS Cloudflare *"
-ui_print "*****************************************"
+(sleep 2) &
+show_animation "- Configurando entorno..."
 
-# 2. Establecer Permisos para service.sh (¡MUY IMPORTANTE!)
-# Es crucial que service.sh tenga permisos de ejecución para que funcione.
-# Propietario: root (0)
-# Grupo: root (0)
-# Permisos: 0755 (rwxr-xr-x) - Lectura/escritura/ejecución para root, lectura/ejecución para grupo y otros.
-ui_print "- Estableciendo permisos para service.sh..."
-set_perm $MODPATH/service.sh 0 0 0755
-ui_print "- Permisos establecidos correctamente (0755)."
+ui_print "- Estableciendo permisos para los scripts..."
+(
+  set_perm $MODPATH/service.sh 0 0 0755
+  set_perm $MODPATH/uninstall.sh 0 0 0755
+  sleep 2
+) &
+show_animation "  Aplicando permisos (0755)..."
 
+(sleep 1) &
+show_animation "- Finalizando instalación..."
 
-ui_print "- Estableciendo permisos para uninstall.sh..."
-set_perm $MODPATH/uninstall.sh 0 0 0755
-ui_print "- Permisos establecidos correctamente (0755)."
-
-# 3.Mensaje final 
-ui_print "- Instalación completada."
-ui_print "- Reinicia tu dispositivo para activar el módulo."
+ui_print "**********************************************"
+ui_print "*    Instalación Completada                 *"
+ui_print "*    Reinicia para activar los cambios      *"
+ui_print "**********************************************"
 
 exit 0
