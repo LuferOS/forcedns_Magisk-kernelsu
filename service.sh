@@ -1,68 +1,66 @@
 #!/system/bin/sh
-# Este script se ejecuta durante la etapa 'late_start service' del arranque.
-# Su propósito es aplicar reglas de iptables para redirigir el tráfico DNS estándar (puerto 53)
-# al servidor DNS de Cloudflare (1.1.1.1 y su equivalente IPv6).
+# Script de Servicio Late Start - Redirección DNS Nivel Experto
 
-# --- Espera Opcional ---
-# Esperar hasta que el sistema haya completado el arranque (prop sys.boot_completed = 1)
-# Esto asegura que la pila de red y los servicios necesarios estén completamente inicializados.
-# Se incluye un límite de tiempo (ej. 60 segundos) para evitar bucles infinitos si la propiedad no se establece.
-MAX_WAIT_SECONDS=60
-COUNTER=0
-while [ "$(getprop sys.boot_completed)" != "1" ]; do
-  sleep 5 # Esperar 5 segundos
-  COUNTER=$((COUNTER + 5))
-  if [ $COUNTER -ge $MAX_WAIT_SECONDS ]; then
-    # Si se supera el tiempo máximo, registrar un error (opcional) y salir para no bloquear.
-    log -p e -t ForceDNS "Error: El sistema no completó el arranque en ${MAX_WAIT_SECONDS}s. No se aplicaron las reglas DNS."
-    exit 1 # Salir del script
-  fi
+# Espera inteligente y pasiva. No bloqueamos el hilo de arranque.
+until [ "$(getprop sys.boot_completed)" = "1" ]; do
+    sleep 3
 done
 
-# --- Definición de Servidores DNS ---
-# Dirección IPv4 de Cloudflare
-DNS1_V4="1.1.1.1"
-# Dirección IPv6 de Cloudflare
-DNS1_V6="2606:4700:4700::1111"
-# Puerto DNS estándar
-DNS_PORT="53"
+DNS_V4="1.1.1.1"
+DNS_V6="2606:4700:4700::1111"
+PORT="53"
 
-# --- Limpieza de Reglas Anteriores (Buena Práctica) ---
-# Elimina reglas previas en la cadena OUTPUT de la tabla nat para evitar duplicados
-# o conflictos si el script se ejecuta múltiples veces o si había reglas antiguas.
-iptables -t nat -F OUTPUT
-# Intenta limpiar ip6tables, ignorando el error si IPv6 o ip6tables no están disponibles/soportados.
-ip6tables -t nat -F OUTPUT 2>/dev/null
+# ==============================================================================
+# CONFIGURACIÓN IPv4
+# ==============================================================================
+# 1. Crear nuestra propia cadena aislada (evita tocar otras reglas del sistema)
+iptables -t nat -N FORCE_DNS_V4 2>/dev/null
+iptables -t nat -F FORCE_DNS_V4 # Limpiamos nuestra cadena por si ya existía
 
-# --- Aplicación de Reglas iptables (IPv4) ---
-# Redirige todo el tráfico UDP generado localmente (-A OUTPUT) destinado al puerto 53 (--dport 53)
-# hacia la IP y puerto de Cloudflare IPv4 (${DNS1_V4}:${DNS_PORT}) usando DNAT (-j DNAT).
-iptables -t nat -A OUTPUT -p udp --dport ${DNS_PORT} -j DNAT --to-destination ${DNS1_V4}:${DNS_PORT}
+# 2. Desvincular de OUTPUT si ya estábamos enganchados (para evitar duplicados si se reinicia el script)
+iptables -t nat -D OUTPUT -p udp --dport $PORT -j FORCE_DNS_V4 2>/dev/null
+iptables -t nat -D OUTPUT -p tcp --dport $PORT -j FORCE_DNS_V4 2>/dev/null
 
-# Redirige todo el tráfico TCP generado localmente (-A OUTPUT) destinado al puerto 53 (--dport 53)
-# hacia la IP y puerto de Cloudflare IPv4 (${DNS1_V4}:${DNS_PORT}) usando DNAT (-j DNAT).
-iptables -t nat -A OUTPUT -p tcp --dport ${DNS_PORT} -j DNAT --to-destination ${DNS1_V4}:${DNS_PORT}
+# 3. Reglas de Exclusión (¡CRÍTICO!)
+# Retornamos (ignoramos) el tráfico dirigido a redes locales y privadas (RFC 1918).
+# Esto salva tu conexión a routers, localhost y portales cautivos de Wi-Fi público.
+iptables -t nat -A FORCE_DNS_V4 -d 127.0.0.0/8 -j RETURN
+iptables -t nat -A FORCE_DNS_V4 -d 10.0.0.0/8 -j RETURN
+iptables -t nat -A FORCE_DNS_V4 -d 172.16.0.0/12 -j RETURN
+iptables -t nat -A FORCE_DNS_V4 -d 192.168.0.0/16 -j RETURN
+iptables -t nat -A FORCE_DNS_V4 -d 224.0.0.0/4 -j RETURN
 
-# --- Aplicación de Reglas ip6tables (IPv6) ---
-# Primero, verifica si el comando ip6tables existe y la tabla 'nat' es accesible.
-# Esto evita errores en sistemas sin soporte IPv6 completo o sin ip6tables.
+# 4. Regla de Redirección (DNAT)
+# Todo lo que no sea red local, cae aquí y se va para Cloudflare.
+iptables -t nat -A FORCE_DNS_V4 -j DNAT --to-destination $DNS_V4:$PORT
+
+# 5. Enganchar nuestra cadena maestra a la salida del sistema, con prioridad.
+iptables -t nat -I OUTPUT -p udp --dport $PORT -j FORCE_DNS_V4
+iptables -t nat -I OUTPUT -p tcp --dport $PORT -j FORCE_DNS_V4
+
+# ==============================================================================
+# CONFIGURACIÓN IPv6
+# ==============================================================================
 if ip6tables -t nat -L OUTPUT > /dev/null 2>&1; then
-    # Si ip6tables funciona, aplica las reglas para IPv6.
-    # Redirige tráfico UDP IPv6 al DNS de Cloudflare IPv6.
-    ip6tables -t nat -A OUTPUT -p udp --dport ${DNS_PORT} -j DNAT --to-destination [${DNS1_V6}]:${DNS_PORT}
-    # Redirige tráfico TCP IPv6 al DNS de Cloudflare IPv6.
-    ip6tables -t nat -A OUTPUT -p tcp --dport ${DNS_PORT} -j DNAT --to-destination [${DNS1_V6}]:${DNS_PORT}
-    IPV6_RULES_APPLIED=true
-else
-    IPV6_RULES_APPLIED=false
-fi
+    ip6tables -t nat -N FORCE_DNS_V6 2>/dev/null
+    ip6tables -t nat -F FORCE_DNS_V6
+    
+    ip6tables -t nat -D OUTPUT -p udp --dport $PORT -j FORCE_DNS_V6 2>/dev/null
+    ip6tables -t nat -D OUTPUT -p tcp --dport $PORT -j FORCE_DNS_V6 2>/dev/null
 
-# --- Registro Opcional ---
-# Puedes usar el comando 'log' para enviar mensajes al logcat de Android y verificar la ejecución.
-if $IPV6_RULES_APPLIED; then
-    log -p i -t ForceDNS "Reglas de redirección DNS (IPv4/IPv6) aplicadas a ${DNS1_V4} y [${DNS1_V6}]"
+    # Exclusiones IPv6 (Localhost, Link-local, Unique-local)
+    ip6tables -t nat -A FORCE_DNS_V6 -d ::1/128 -j RETURN
+    ip6tables -t nat -A FORCE_DNS_V6 -d fe80::/10 -j RETURN
+    ip6tables -t nat -A FORCE_DNS_V6 -d fc00::/7 -j RETURN
+
+    ip6tables -t nat -A FORCE_DNS_V6 -j DNAT --to-destination [$DNS_V6]:$PORT
+
+    ip6tables -t nat -I OUTPUT -p udp --dport $PORT -j FORCE_DNS_V6
+    ip6tables -t nat -I OUTPUT -p tcp --dport $PORT -j FORCE_DNS_V6
+    
+    log -p i -t ForceDNS "Seguridad DNS Activa: IPv4 e IPv6 redirigidos limpiamente a Cloudflare."
 else
-    log -p i -t ForceDNS "Reglas de redirección DNS (IPv4) aplicadas a ${DNS1_V4}. IPv6 no configurado o no soportado."
+    log -p i -t ForceDNS "Seguridad DNS Activa: IPv4 redirigido. IPv6 ignorado (no soportado por el kernel actual)."
 fi
 
 exit 0
