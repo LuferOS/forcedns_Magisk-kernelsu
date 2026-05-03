@@ -1,75 +1,75 @@
-# ForceDNS Cloudflare (1.1.1.1) - Módulo Magisk/KernelSU
+# 🛡️ FORCE DNS TABLE (Cloudflare 1.1.1.1)
 
-![Magisk](https://img.shields.io/badge/Magisk-%3E%3D20.4-green.svg)
-![KernelSU](https://img.shields.io/badge/KernelSU-Compatible-blue.svg)
-![Versión](https://img.shields.io/badge/Versión-1.1-blue)
-![Autor](https://img.shields.io/badge/Autor-LuferOS%20-lightgrey)
+<div align="center">
 
-Un módulo simple pero efectivo para Magisk y KernelSU que fuerza a tu dispositivo Android a usar los servidores DNS de Cloudflare (1.1.1.1 y 2606:4700:4700::1111) para todas las consultas DNS estándar (puerto 53 UDP/TCP).
+[![Downloads](https://img.shields.io/github/downloads/LuferOS/forcedns_Magisk-kernelsu/total?style=for-the-badge&color=cyan&logo=github)](https://github.com/LuferOS/forcedns_Magisk-kernelsu/releases)
+[![Stars](https://img.shields.io/github/stars/LuferOS/forcedns_Magisk-kernelsu?style=for-the-badge&color=yellow&logo=github)](https://github.com/LuferOS/forcedns_Magisk-kernelsu/stargazers)
+[![Forks](https://img.shields.io/github/forks/LuferOS/forcedns_Magisk-kernelsu?style=for-the-badge&color=orange&logo=github)](https://github.com/LuferOS/forcedns_Magisk-kernelsu/network/members)
+[![Release](https://img.shields.io/github/v/release/LuferOS/forcedns_Magisk-kernelsu?style=for-the-badge&color=blue&logo=android)](https://github.com/LuferOS/forcedns_Magisk-kernelsu/releases)
+[![Magisk](https://img.shields.io/badge/Magisk-v20.4+-00AF9C?style=for-the-badge&logo=magisk)](https://github.com/topjohnwu/Magisk)
+[![KernelSU](https://img.shields.io/badge/KernelSU-Compatible-blueviolet?style=for-the-badge&logo=linux)](https://github.com/tiann/KernelSU)
 
-## Descripción
+**Secuestro absoluto del tráfico DNS a nivel Kernel. Cero fugas. Cero conflictos.**
+<br>
+Desarrollado por [LuferOS](https://github.com/LuferOS)
+</div>
 
-Este módulo utiliza reglas `iptables` (y `ip6tables` para IPv6) para interceptar y redirigir todo el tráfico DNS que sale de tu dispositivo por el puerto 53 hacia los servidores rápidos y centrados en la privacidad de Cloudflare. Esto sobrescribe eficazmente cualquier configuración DNS proporcionada por tu red Wi-Fi o de datos móviles.
+---
 
-**Objetivo:** Mejorar la privacidad, potencialmente la velocidad de navegación y eludir ciertos bloqueos basados en DNS.
+## 📌 ¿Qué hace este módulo?
 
-## Características
+**FORCE DNS TABLE** no es solo un cambiador de DNS. Es un módulo avanzado para **Magisk** y **KernelSU** que intercepta *todo* el tráfico DNS estándar (puerto 53 UDP/TCP) desde la raíz del sistema operativo y lo redirige a los servidores ultrarrápidos y privados de **Cloudflare (1.1.1.1 y 2606:4700:4700::1111)**.
 
-* **Forzado a Nivel de Sistema:** Redirige *todo* el tráfico DNS estándar (puerto 53) a 1.1.1.1.
-* **Systemless:** No modifica la partición `/system`.
-* **Soporte IPv4/IPv6:** Aplica reglas para ambos protocolos.
-* **Compatibilidad:** Funciona tanto con Magisk (v20.4+) como con KernelSU.
-* **Limpieza Automática:** Incluye un script `uninstall.sh` para eliminar las reglas al desinstalar el módulo.
+A diferencia de las configuraciones manuales o aplicaciones de terceros, este módulo sobreescribe cualquier imposición de tu ISP, red Wi-Fi o datos móviles a nivel de `iptables`.
 
-## Notas Importantes y Limitaciones
+## 🚀 Novedades en v2.0-Pro
 
-* **Sin Failover:** Este módulo redirige *exclusivamente* a 1.1.1.1. **No** utiliza 8.8.8.8 (Google DNS) como respaldo si Cloudflare no está disponible.
-* **No Afecta DNS Cifrado:** Las reglas **no** interceptan tráfico DNS-over-TLS (DoT - Configuración de DNS Privado de Android) ni DNS-over-HTTPS (DoH - Usado por algunos navegadores/apps). Si usas DNS Privado o DoH en tus apps, este módulo no los afectará. Para forzar *todo*, deberías desactivar el DNS Privado y el DoH en tus aplicaciones.
-* **Interacción con VPNs:** Cuando una VPN está activa, generalmente maneja su propio tráfico DNS. Las reglas de este módulo podrían ser ignoradas o entrar en conflicto. El comportamiento depende de la implementación de la VPN.
-* **Aplicaciones Específicas:** Apps que usen DNS "hardcodeados" o protocolos no estándar no se verán afectadas.
+Este no es el típico script que vacía tus iptables y rompe tu teléfono. Hemos rediseñado el núcleo:
+* **Custom Chains Architecture:** Ahora utiliza Cadenas Personalizadas (`FORCE_DNS_V4` y `FORCE_DNS_V6`). No interfiere con otras aplicaciones, cortafuegos o módulos que utilicen iptables.
+* **Smart Bypass (Exclusiones de Red Local):** Ignora inteligentemente el tráfico de redes locales (RFC 1918). ¡Se acabaron los problemas con los portales cautivos de aeropuertos, hoteles o la configuración de tu router!
+* **Limpieza Quirúrgica:** El script de desinstalación elimina únicamente nuestras cadenas. No deja residuos en la RAM ni afecta la estabilidad de la red.
 
-## Requisitos
+## ⚙️ Características Principales
 
-* Dispositivo Android con root.
-* **Magisk** (versión 20.4 o superior) o **KernelSU** instalado.
+-   ⚡ **Hardcoded Routing:** Todo lo que intente salir por el puerto 53 es capturado y enviado a Cloudflare.
+-   🛡️ **Totalmente Systemless:** No modifica un solo byte de la partición `/system`.
+-   🌐 **Soporte Dual-Stack:** Interceptación completa para tráfico **IPv4 e IPv6**.
+-   🧹 **Auto-Limpieza:** Al desactivar o desinstalar el módulo, la tabla de ruteo vuelve a su estado de fábrica de inmediato.
 
-## Instalación
+## ⚠️ Limitaciones Conocidas (Léelo)
 
-1.  Descarga el archivo ZIP del módulo desde la sección [Releases]([forcedns_cf_v1.1.zip](https://github.com/user-attachments/files/19783545/forcedns_cf_v1.1.zip)).
+1.  **DNS Privado (DoT / DoH):** Las reglas de iptables actúan sobre el puerto 53 (DNS clásico). Si tienes activado el "DNS Privado" en los ajustes de Android (DNS over TLS) o usas navegadores con DNS over HTTPS integrado, ese tráfico viaja cifrado por los puertos 853 o 443. Si quieres que el módulo controle el 100% del tráfico, **desactiva el DNS Privado**.
+2.  **Conflictos VPN:** Si usas una VPN, su túnel cifrado tendrá prioridad. El módulo no romperá tu VPN, pero es probable que el tráfico DNS pase a ser gestionado por el servidor VPN.
+3.  **Sin Servidor de Respaldo:** Redirige exclusivamente a Cloudflare. Si 1.1.1.1 cae (algo casi imposible), no hará failover a Google DNS.
+
+## 📲 Instrucciones de Instalación
+
+1.  Descarga el archivo `.zip` más reciente desde la sección de [Releases](https://github.com/LuferOS/forcedns_Magisk-kernelsu/releases).
 2.  Abre **Magisk Manager** o **KernelSU Manager**.
-3.  Ve a la sección `Módulos`.
-4.  Pulsa `Instalar desde almacenamiento`.
-5.  Selecciona el archivo ZIP descargado (ej. `forcedns_cf_v1.1.zip`).
-6.  Espera a que la instalación finalice.
-7.  **Reinicia** tu dispositivo.
+3.  Dirígete a la pestaña de **Módulos**.
+4.  Toca en **Instalar desde el almacenamiento** y selecciona el ZIP descargado.
+5.  Observa la terminal de instalación (diseñada a medida) y espera a que termine.
+6.  **Reinicia el dispositivo** para que las reglas de iptables se inyecten en el arranque.
 
-## Verificación
+## 🕵️‍♂️ Verificación de Funcionamiento
 
-Después de reiniciar, puedes verificar que el módulo funciona:
+¿No confías a ciegas? Me parece perfecto. Para comprobar que está funcionando:
 
-1.  **Comprobar Reglas `iptables`:**
-    * Abre una terminal (Termux, ADB Shell, etc.).
-    * Obtén acceso root: `su`
-    * Ejecuta:
-        ```bash
-        iptables -t nat -L OUTPUT -nv
-        ip6tables -t nat -L OUTPUT -nv
-        ```
-    * Deberías ver reglas `DNAT` para `udp` y `tcp` con `dpt:53` redirigiendo a `1.1.1.1:53` y `[2606:4700:4700::1111]:53`. Las columnas `pkts` y `bytes` deberían aumentar con el uso de la red.
+1.  **Vía Terminal (Termux / ADB Shell):**
+    Ejecuta esto como superusuario (`su`):
+    ```bash
+    iptables -t nat -L FORCE_DNS_V4 -nv
+    ```
+    Si ves paquetes y bytes en la regla de `DNAT` hacia `1.1.1.1`, el tráfico está siendo secuestrado correctamente.
 
-2.  **Prueba de Fuga de DNS:**
-    * Abre un navegador web en tu dispositivo.
-    * Visita sitios como [DNSLeakTest.com](https://www.dnsleaktest.com/) o [IPLeak.net](https://ipleak.net/).
-    * Ejecuta la prueba estándar. Los resultados **deberían** mostrar servidores asociados a Cloudflare y **no** los de tu proveedor de internet (ISP).
+2.  **Vía Web:**
+    Entra a [DNSLeakTest.com](https://www.dnsleaktest.com/) y haz un test extendido. Si tu operadora de internet (Claro, Movistar, Tigo, etc.) no aparece por ningún lado y solo ves los ASNs de Cloudflare, el módulo está haciendo su trabajo.
 
-## Desinstalación
+## 🗑️ Desinstalación
 
-1.  Abre **Magisk Manager** o **KernelSU Manager**.
-2.  Ve a la sección `Módulos`.
-3.  Busca el módulo "Forzar DNS Cloudflare".
-4.  Desactívalo y/o pulsa el icono de eliminar/basura.
-5.  **Reinicia** tu dispositivo.
-    * El script `uninstall.sh` intentará eliminar las reglas `iptables` automáticamente antes del reinicio.
+Tan fácil como instalarlo. Bórralo o desactívalo desde Magisk/KernelSU y reinicia. El script `uninstall.sh` se encargará de purgar las cadenas personalizadas sin dejar rastro.
 
-## Créditos
-* **Frameworks:** Creado para [Magisk](https://github.com/topjohnwu/Magisk) por topjohnwu y [KernelSU](https://github.com/tiann/KernelSU) por tiann.
+---
+<div align="center">
+  <b>¿Te sirvió este módulo? ¡No seas tacaño y dale una ⭐ al repositorio!</b>
+</div>
