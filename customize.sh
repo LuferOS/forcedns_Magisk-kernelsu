@@ -1,30 +1,17 @@
 #!/sbin/sh
-# Este script se ejecuta durante la instalación del módulo en Magisk Manager / KernelSU Manager.
-# Utiliza funciones proporcionadas por el entorno de instalación para configurar el módulo.
+# Instalador de Módulo - Optimizado para Magisk / KernelSU
 
-# --- Lógica de Instalación ---
+ui_print "*************************************************"
+ui_print "* 🔥 Instalando FORCE DNS TABLE                 *"
+ui_print "* ⚡ Optimizado al extremo. Cero fugas.         *"
+ui_print "*************************************************"
 
-# 1.Mostrar mensaje
-ui_print "*****************************************"
-ui_print "* Instalando Módulo Forzar DNS Cloudflare *"
-ui_print "*****************************************"
-
-# 2. Establecer Permisos para service.sh (¡MUY IMPORTANTE!)
-# Es crucial que service.sh tenga permisos de ejecución para que funcione.
-# Propietario: root (0)
-# Grupo: root (0)
-# Permisos: 0755 (rwxr-xr-x) - Lectura/escritura/ejecución para root, lectura/ejecución para grupo y otros.
-ui_print "- Estableciendo permisos para service.sh..."
+# Damos permisos tácticos. Magisk suele hacerlo solo, pero nos aseguramos.
+ui_print "- Configurando permisos de ejecución..."
 set_perm $MODPATH/service.sh 0 0 0755
-ui_print "- Permisos establecidos correctamente (0755)."
-
-
-ui_print "- Estableciendo permisos para uninstall.sh..."
 set_perm $MODPATH/uninstall.sh 0 0 0755
-ui_print "- Permisos establecidos correctamente (0755)."
 
-# 3.Mensaje final 
-ui_print "- Instalación completada."
-ui_print "- Reinicia tu dispositivo para activar el módulo."
+ui_print "- Arquitectura de red lista."
+ui_print "- ¡Listo, chico! Reinicia la máquina para activar."
 
 exit 0
