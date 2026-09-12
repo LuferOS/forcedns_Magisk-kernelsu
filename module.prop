@@ -1,6 +1,6 @@
 id=force_dns_cf
 name=Force DNS Table (Cloudflare 1.1.1.1)
 version=v2.0-Pro
-versionCode=3
+versionCode=4
 author=LuferOS
 description=Secuestra el tráfico DNS (puerto 53) hacia 1.1.1.1 usando Cadenas Personalizadas de iptables. Excluye tráfico de red local para no romper portales cautivos ni VPNs.
